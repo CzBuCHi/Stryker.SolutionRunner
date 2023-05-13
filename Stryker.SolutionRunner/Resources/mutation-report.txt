@@ -1,0 +1,1 @@
+﻿{"schemaVersion":"1","thresholds":{"high":80,"low":60},"projectRoot":"c:\\projects\\Celebrum\\BackEnd","files":{}}
