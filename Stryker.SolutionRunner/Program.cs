@@ -1,10 +1,13 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Stryker.SolutionRunner;
+﻿using Stryker.SolutionRunner;
 
 if (args.Length == 0) {
     Console.WriteLine("USAGE: Stryker.SolutionRunner Solution.sln [--force] [stryker args]");
     return;
 }
+
+#if DEBUG
+Debugger.Launch();
+#endif
 
 var solutionFullPath = args[0];
 var force = args.Length > 1 && args[1] == "--force";
