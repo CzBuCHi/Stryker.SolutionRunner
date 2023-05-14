@@ -19,10 +19,6 @@ internal static class ReportManager
     /// <summary>Returns <see cref="FileInfo"/> of file that is newer thant report file.</summary>
     private static FileInfo? GetFileNewerThanReport(TestInfo testInfo) {
         var report = testInfo.ReportPath;
-        if (!File.Exists(report)) {
-            return null;
-        }
-
         var reportWriteTime = File.GetLastWriteTime(report);
         return EnumerateFiles(testInfo).FirstOrDefault(file => file.LastWriteTime > reportWriteTime);
     }
@@ -86,8 +82,13 @@ internal static class ReportManager
         Console.WriteLine(Path.GetFileName(testInfo.TestProjectPath));
         Console.ResetColor();
 
-        bool upToDate = !force;
-        if (!force) {
+        bool upToDate = true;
+        if (!File.Exists(testInfo.ReportPath)) {
+            Console.Write("Project report file not found.");
+            upToDate = false;
+        }
+
+        if (upToDate && !force) {
             var file = GetFileNewerThanReport(testInfo);
             if (file != null) {
                 Console.Write("File ");
