@@ -81,8 +81,6 @@ internal static class DotnetWrapper
             UseShellExecute = false,
         };
 
-        Console.WriteLine("dotnet " + info.Arguments);
-
         var process = Process.Start(info)!;
         process.WaitForExit();
         return process.ExitCode == 0;

@@ -16,16 +16,15 @@ internal static class ReportManager
         }
     }
 
-    /// <summary>Check if report is up to date.</summary>
-    /// <returns>True if report is up to date, false otherwise.</returns>
-    private static bool IsReportValid(TestInfo testInfo) {
+    /// <summary>Returns <see cref="FileInfo"/> of file that is newer thant report file.</summary>
+    private static FileInfo? GetFileNewerThanReport(TestInfo testInfo) {
         var report = testInfo.ReportPath;
         if (!File.Exists(report)) {
-            return false;
+            return null;
         }
 
         var reportWriteTime = File.GetLastWriteTime(report);
-        return EnumerateFiles(testInfo).All(file => file.LastWriteTime <= reportWriteTime);
+        return EnumerateFiles(testInfo).FirstOrDefault(file => file.LastWriteTime > reportWriteTime);
     }
 
     /// <summary>Enumerate all files in test and tested project directories excluding files in 'bin' and 'obj' directories.</summary>
@@ -82,19 +81,30 @@ internal static class ReportManager
      /// <param name="extraArgs">Additional stryker arguments.</param>
      /// <returns>True if report was updated, otherwise false.</returns>
     public static bool UpdateReport(string solutionFullPath, TestInfo testInfo, bool force, string[] extraArgs) {
-        Console.Write(Path.GetFileName(testInfo.TestProjectPath));
+        Console.Write("Test project: ");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine(Path.GetFileName(testInfo.TestProjectPath));
+        Console.ResetColor();
 
-        if (!force && IsReportValid(testInfo)) {
+        bool upToDate = !force;
+        if (!force) {
+            var file = GetFileNewerThanReport(testInfo);
+            if (file != null) {
+                Console.Write("File ");
+                Console.ForegroundColor = ConsoleColor.DarkCyan;
+                Console.Write(file.FullName);
+                Console.ResetColor();
+                Console.WriteLine(" is newer that report file.");
+                upToDate = false;
+            }
+        }
+
+        if (upToDate) {
             Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine(" up to date");
+            Console.WriteLine("Project report is up to date.");
             Console.ResetColor();
             return false;
         }
-
-        Console.ForegroundColor = ConsoleColor.DarkCyan;
-        Console.Write(" updating ");
-        Console.ResetColor();
-        Console.WriteLine("...");
 
         if (!DotnetWrapper.RunStryker(solutionFullPath, testInfo.TestedProjectName, testInfo.TestProjectPath, extraArgs)) {
             Console.ForegroundColor = ConsoleColor.DarkRed;
