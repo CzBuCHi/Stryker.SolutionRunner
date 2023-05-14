@@ -15,7 +15,7 @@ var testInfos = ProjectResolver.GetTestInfos(solutionFullPath).ToArray();
 
 bool reportUpdated = false;
 foreach (var testInfo in testInfos) {
-    reportUpdated |= ReportManager.UpdateReport(solutionFullPath, testInfo, true, strykerArgs);
+    reportUpdated |= ReportManager.UpdateReport(solutionFullPath, testInfo, force, strykerArgs);
 }
 
 if (reportUpdated) {

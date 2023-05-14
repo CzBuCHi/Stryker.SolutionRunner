@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Stryker.SolutionRunner": {
-      "commandName": "Project",
-      "commandLineArgs": "c:\\projects\\Celebrum4\\BackEnd.sln --force -r \"html\" -r \"progress\" -o"
-    }
-  }
-}

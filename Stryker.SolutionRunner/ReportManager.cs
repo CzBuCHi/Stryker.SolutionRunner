@@ -25,26 +25,36 @@ internal static class ReportManager
         }
 
         var reportWriteTime = File.GetLastWriteTime(report);
+        return EnumerateFiles(testInfo).All(file => file.LastWriteTime <= reportWriteTime);
+    }
 
-        var testBin = Path.Combine(testInfo.TestProjectDir, "bin") + Path.DirectorySeparatorChar;
-        var testObj = Path.Combine(testInfo.TestProjectDir, "obj") + Path.DirectorySeparatorChar;
+    /// <summary>Enumerate all files in test and tested project directories excluding files in 'bin' and 'obj' directories.</summary>
+    private static IEnumerable<FileInfo> EnumerateFiles(TestInfo testInfo) {
+        foreach (var file in EnumerateProjectFiles(testInfo.TestProjectDir)) {
+            yield return file;
+        }
 
-        var testedBin = Path.Combine(testInfo.TestedProjectDir, "bin") + Path.DirectorySeparatorChar;
-        var testedObj = Path.Combine(testInfo.TestedProjectDir, "obj") + Path.DirectorySeparatorChar;
+        foreach (var file in EnumerateProjectFiles(testInfo.TestedProjectDir)) {
+            yield return file;
+        }
 
-        var testFiles = new DirectoryInfo(testInfo.TestProjectDir).EnumerateFiles("*.*", SearchOption.AllDirectories);
-        var testedFiles = new DirectoryInfo(testInfo.TestedProjectDir).EnumerateFiles("*.*", SearchOption.AllDirectories);
+    }
 
-        var lastWriteTime = testFiles.Concat(testedFiles)
-                                     .Where(
-                                          o =>
-                                              o.FullName != report &&
-                                              !o.FullName.StartsWith(testBin) && !o.FullName.StartsWith(testObj) &&
-                                              !o.FullName.StartsWith(testedBin) && !o.FullName.StartsWith(testedObj)
-                                      )
-                                     .Max(o => o.LastWriteTime);
+    /// <summary>Enumerate all files in <paramref name="projectDir"/> excluding files in 'bin' and 'obj' folders.</summary>
+    private static IEnumerable<FileInfo> EnumerateProjectFiles(string projectDir) {
+        var binPath = Path.Combine(projectDir, "bin") + Path.DirectorySeparatorChar;
+        var objPath = Path.Combine(projectDir, "obj") + Path.DirectorySeparatorChar;
 
-        return reportWriteTime >= lastWriteTime;
+        var files = new DirectoryInfo(projectDir).EnumerateFiles("*.*", SearchOption.AllDirectories);
+        foreach (FileInfo file in files) {
+
+            if (file.FullName.StartsWith(binPath) ||
+                file.FullName.StartsWith(objPath)) {
+                continue;
+            }
+
+            yield return file;
+        }
     }
 
     /// <summary>Merge all json reports into single json report</summary>
